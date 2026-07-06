@@ -1,17 +1,21 @@
-import { Card } from '@/shared/components/ui/card';
+import { ReactNode } from 'react';
 
 type SummaryCardProps = {
   title: string;
   value: number;
+  icon?: ReactNode;
 };
 
-export function SummaryCard({ title, value }: SummaryCardProps) {
+export function SummaryCard({ title, value, icon }: SummaryCardProps) {
   return (
-    <Card style={{ flex: 1, minWidth: 180 }}>
-      <p className="muted" style={{ marginTop: 0 }}>
+    <div className="summary-card">
+      <div className="summary-card-header">
+        {icon}
         {title}
-      </p>
-      <h2 style={{ marginBottom: 0 }}>R$ {value.toFixed(2)}</h2>
-    </Card>
+      </div>
+      <h2 className="summary-card-value">
+        R$ {value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </h2>
+    </div>
   );
 }

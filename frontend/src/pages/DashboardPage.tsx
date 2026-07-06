@@ -1,12 +1,14 @@
 import { RecentTransactions, SummaryCard, useDashboard } from '@/features/dashboard';
+import { CategoriesList } from '@/features/dashboard/components/CategoriesList';
 import { Layout } from '@/shared/components/Layout';
+import { Wallet, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 
 export function DashboardPage() {
   const { data, isLoading } = useDashboard();
 
   if (isLoading) {
     return (
-      <Layout title="Dashboard">
+      <Layout>
         <p>Carregando...</p>
       </Layout>
     );
@@ -14,21 +16,39 @@ export function DashboardPage() {
 
   if (!data) {
     return (
-      <Layout title="Dashboard">
+      <Layout>
         <p>Sem dados para exibir.</p>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Dashboard">
-      <div className="row">
-        <SummaryCard title="Saldo" value={data.balance} />
-        <SummaryCard title="Receitas" value={data.income} />
-        <SummaryCard title="Despesas" value={data.expenses} />
+    <Layout>
+      <div className="dashboard-grid">
+        <SummaryCard 
+          title="Saldo Total" 
+          value={data.balance} 
+          icon={<Wallet size={20} color="var(--purple-base)" />} 
+        />
+        <SummaryCard 
+          title="Receitas do Mês" 
+          value={data.income} 
+          icon={<ArrowUpCircle size={20} color="var(--green-dark)" />} 
+        />
+        <SummaryCard 
+          title="Despesas do Mês" 
+          value={data.expenses} 
+          icon={<ArrowDownCircle size={20} color="var(--danger)" />} 
+        />
       </div>
-      <div style={{ marginTop: '1rem' }}>
-        <RecentTransactions transactions={data.recentTransactions} />
+
+      <div className="dashboard-content-grid">
+        <div>
+          <RecentTransactions transactions={data.recentTransactions} />
+        </div>
+        <div>
+          <CategoriesList />
+        </div>
       </div>
     </Layout>
   );

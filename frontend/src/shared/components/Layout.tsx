@@ -1,24 +1,45 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/features/auth';
-import { Button } from '@/shared/components/ui/button';
+import { Link, useLocation } from 'react-router-dom';
+import { CircleDollarSign } from 'lucide-react';
 
 type LayoutProps = {
-  title: string;
+  title?: string; // no longer really used in this header, but keeping it
   children: ReactNode;
 };
 
-export function Layout({ title, children }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
   const { logout } = useAuth();
+  const location = useLocation();
 
   return (
-    <div className="container">
-      <header className="header">
-        <h1 style={{ margin: 0 }}>{title}</h1>
-        <Button variant="ghost" onClick={logout}>
-          Sair
-        </Button>
+    <>
+      <header className="dashboard-header">
+        <div className="logo">
+          <CircleDollarSign color="var(--brand-base)" size={24} />
+          <span>FINANCY</span>
+        </div>
+
+        <nav className="dashboard-nav">
+          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>
+            Dashboard
+          </Link>
+          <Link to="/transactions" className={location.pathname === '/transactions' ? 'active' : ''}>
+            Transações
+          </Link>
+          <Link to="/categories" className={location.pathname === '/categories' ? 'active' : ''}>
+            Categorias
+          </Link>
+        </nav>
+
+        <div className="avatar-circle" onClick={logout} style={{ cursor: 'pointer' }} title="Sair">
+          CT
+        </div>
       </header>
-      {children}
-    </div>
+      <div className="dashboard-container">
+        {children}
+      </div>
+    </>
   );
 }
+
