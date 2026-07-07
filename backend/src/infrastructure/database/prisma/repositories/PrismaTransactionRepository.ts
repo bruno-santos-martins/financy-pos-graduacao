@@ -13,6 +13,8 @@ export class PrismaTransactionRepository implements ITransactionRepository {
         description: input.description,
         amount: input.amount,
         type: input.type,
+        date: input.date,
+        categoryId: input.categoryId,
       },
     });
 
@@ -22,7 +24,9 @@ export class PrismaTransactionRepository implements ITransactionRepository {
       transaction.description,
       transaction.amount,
       transaction.type as 'INCOME' | 'EXPENSE',
+      transaction.date,
       transaction.createdAt,
+      transaction.categoryId,
     );
   }
 
@@ -51,7 +55,9 @@ export class PrismaTransactionRepository implements ITransactionRepository {
           transaction.description,
           transaction.amount,
           transaction.type as 'INCOME' | 'EXPENSE',
+          transaction.date,
           transaction.createdAt,
+          transaction.categoryId,
         ),
     );
   }

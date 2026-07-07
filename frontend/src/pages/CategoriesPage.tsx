@@ -13,80 +13,38 @@ import {
   Home,
   Trash2,
   Edit2,
-  Plus
+  Plus,
+  PawPrint,
+  Gift,
+  Dumbbell,
+  Book,
+  ShoppingBag,
+  Wallet,
+  ClipboardList
 } from 'lucide-react';
 import { useState } from 'react';
-import { CreateCategoryModal } from '@/features/category';
+import { CreateCategoryModal, EditCategoryModal, useCategories, useDeleteCategory } from '@/features/category';
+import type { Category } from '@/features/category/types';
 
-const mockCategories = [
-  {
-    id: '1',
-    name: 'Alimentação',
-    description: 'Restaurantes, delivery e refeições',
-    colorClass: 'bg-blue',
-    icon: <Utensils size={24} color="var(--blue-dark)" />,
-    itemsCount: 12
-  },
-  {
-    id: '2',
-    name: 'Entretenimento',
-    description: 'Cinema, jogos e lazer',
-    colorClass: 'bg-pink',
-    icon: <Ticket size={24} color="var(--pink-dark)" />,
-    itemsCount: 2
-  },
-  {
-    id: '3',
-    name: 'Investimento',
-    description: 'Aplicações e retornos financeiros',
-    colorClass: 'bg-green',
-    icon: <PiggyBank size={24} color="var(--green-dark)" />,
-    itemsCount: 1
-  },
-  {
-    id: '4',
-    name: 'Mercado',
-    description: 'Compras de supermercado e mantimentos',
-    colorClass: 'bg-orange',
-    icon: <ShoppingCart size={24} color="var(--orange-dark)" />,
-    itemsCount: 3
-  },
-  {
-    id: '5',
-    name: 'Salário',
-    description: 'Renda mensal e bonificações',
-    colorClass: 'bg-green',
-    icon: <Briefcase size={24} color="var(--green-dark)" />,
-    itemsCount: 3
-  },
-  {
-    id: '6',
-    name: 'Saúde',
-    description: 'Medicamentos, consultas e exames',
-    colorClass: 'bg-red',
-    icon: <HeartPulse size={24} color="var(--red-dark)" />,
-    itemsCount: 0
-  },
-  {
-    id: '7',
-    name: 'Transporte',
-    description: 'Gasolina, transporte público e viagens',
-    colorClass: 'bg-purple',
-    icon: <Car size={24} color="var(--purple-dark)" />,
-    itemsCount: 8
-  },
-  {
-    id: '8',
-    name: 'Utilidades',
-    description: 'Energia, água, internet e telefone',
-    colorClass: 'bg-yellow',
-    icon: <Home size={24} color="var(--yellow-dark)" />,
-    itemsCount: 7
-  }
-];
+const ICON_MAP: Record<string, any> = {
+  Briefcase, Car, HeartPulse, PiggyBank, ShoppingCart, Ticket, Utensils,
+  PawPrint, Home, Gift, Dumbbell, Book, ShoppingBag, Wallet, ClipboardList
+};
 
 export function CategoriesPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  
+  const { data: categories, isLoading } = useCategories();
+  const { mutate: deleteCategory } = useDeleteCategory();
+
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`Tem certeza que deseja excluir a categoria "${name}"?`)) {
+      deleteCategory(id);
+    }
+  };
+
+  const totalCategories = categories?.length || 0;
 
   return (
     <Layout>
@@ -97,7 +55,7 @@ export function CategoriesPage() {
         </div>
         <Button 
           variant="brand"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsCreateModalOpen(true)}
         >
           <Plus size={16} style={{ marginRight: '0.5rem' }} />
           Nova categoria
@@ -110,7 +68,7 @@ export function CategoriesPage() {
             <Tag size={28} />
           </div>
           <div className="summary-info">
-            <span className="summary-value">8</span>
+            <span className="summary-value">{totalCategories}</span>
             <span className="summary-label">TOTAL DE CATEGORIAS</span>
           </div>
         </div>
@@ -120,7 +78,7 @@ export function CategoriesPage() {
             <ArrowDownUp size={28} />
           </div>
           <div className="summary-info">
-            <span className="summary-value">27</span>
+            <span className="summary-value">0</span>
             <span className="summary-label">TOTAL DE TRANSAÇÕES</span>
           </div>
         </div>
@@ -130,50 +88,66 @@ export function CategoriesPage() {
             <Utensils size={28} />
           </div>
           <div className="summary-info">
-            <span className="summary-value">Alimentação</span>
+            <span className="summary-value">-</span>
             <span className="summary-label">CATEGORIA MAIS UTILIZADA</span>
           </div>
         </div>
       </div>
 
       <div className="categories-grid">
-        {mockCategories.map((category) => (
-          <div className="category-card" key={category.id}>
-            <div className="category-card-header">
-              <div className={`category-card-icon ${category.colorClass}`}>
-                {category.icon}
+        {isLoading && <p>Carregando categorias...</p>}
+        {categories?.map((category) => {
+          const IconComponent = ICON_MAP[category.icon] || Tag;
+          
+          return (
+            <div className="category-card" key={category.id}>
+              <div className="category-card-header">
+                <div 
+                  className="category-card-icon"
+                  style={{ backgroundColor: category.colorClass, color: 'white', opacity: 0.9 }}
+                >
+                  <IconComponent size={24} />
+                </div>
+                <div className="category-card-actions">
+                  <button className="action-btn delete" title="Excluir" onClick={() => handleDelete(category.id, category.name)}>
+                    <Trash2 size={16} />
+                  </button>
+                  <button className="action-btn edit" title="Editar" onClick={() => setCategoryToEdit(category as Category)}>
+                    <Edit2 size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="category-card-actions">
-                <button className="action-btn delete" title="Excluir">
-                  <Trash2 size={16} />
-                </button>
-                <button className="action-btn edit" title="Editar">
-                  <Edit2 size={16} />
-                </button>
+              
+              <div className="category-card-body">
+                <h3 className="category-card-title">{category.name}</h3>
+                {category.description && <p className="category-card-desc">{category.description}</p>}
+              </div>
+              
+              <div className="category-card-footer">
+                <span className="badge" style={{ backgroundColor: category.colorClass, color: 'white' }}>
+                  {category.name}
+                </span>
+                <span className="category-card-count">
+                  0 itens
+                </span>
               </div>
             </div>
-            
-            <div className="category-card-body">
-              <h3 className="category-card-title">{category.name}</h3>
-              <p className="category-card-desc">{category.description}</p>
-            </div>
-            
-            <div className="category-card-footer">
-              <span className={`badge ${category.colorClass}`}>
-                {category.name}
-              </span>
-              <span className="category-card-count">
-                {category.itemsCount} {category.itemsCount === 1 ? 'item' : 'itens'}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <CreateCategoryModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
       />
+
+      {categoryToEdit && (
+        <EditCategoryModal
+          isOpen={!!categoryToEdit}
+          onClose={() => setCategoryToEdit(null)}
+          category={categoryToEdit}
+        />
+      )}
     </Layout>
   );
 }

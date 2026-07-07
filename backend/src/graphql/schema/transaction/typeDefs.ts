@@ -10,6 +10,7 @@ export const transactionTypeDefs = `
     amount: Float!
     type: TransactionType!
     date: String!
+    categoryId: ID
   }
 
   type DashboardSummary {
@@ -21,10 +22,11 @@ export const transactionTypeDefs = `
 
   extend type Query {
     dashboardSummary: DashboardSummary!
+    transactions: [Transaction!]!
   }
 
   extend type Mutation {
-    createTransaction(description: String!, amount: Float!, type: TransactionType!): Transaction!
+    createTransaction(description: String!, amount: Float!, type: TransactionType!, date: String!, categoryId: ID): Transaction!
     deleteTransaction(transactionId: ID!): Boolean!
   }
 `;

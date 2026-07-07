@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  //url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,14 +14,30 @@ model User {
   passwordHash String
   createdAt    DateTime      @default(now())
   transactions Transaction[]
+  categories   Category[]
+}
+
+model Category {
+  id          String        @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  icon        String
+  colorClass  String
+  createdAt   DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
+  categoryId  String?
   description String
   amount      Float
   type        String
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 }

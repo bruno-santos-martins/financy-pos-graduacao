@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/features/auth';
 import { Link, useLocation } from 'react-router-dom';
-import { CircleDollarSign } from 'lucide-react';
+import logoImg from '@/shared/img/logo.png';
 
 type LayoutProps = {
   title?: string; // no longer really used in this header, but keeping it
@@ -9,15 +9,13 @@ type LayoutProps = {
 };
 
 export function Layout({ children }: LayoutProps) {
-  const { logout } = useAuth();
   const location = useLocation();
 
   return (
     <>
       <header className="dashboard-header">
         <div className="logo">
-          <CircleDollarSign color="var(--brand-base)" size={24} />
-          <span>FINANCY</span>
+          <img src={logoImg} alt="FINANCY logo" />
         </div>
 
         <nav className="dashboard-nav">
@@ -32,9 +30,9 @@ export function Layout({ children }: LayoutProps) {
           </Link>
         </nav>
 
-        <div className="avatar-circle" onClick={logout} style={{ cursor: 'pointer' }} title="Sair">
+        <Link to="/profile" className="avatar-circle" title="Perfil">
           CT
-        </div>
+        </Link>
       </header>
       <div className="dashboard-container">
         {children}

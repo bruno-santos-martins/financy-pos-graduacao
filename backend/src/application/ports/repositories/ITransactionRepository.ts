@@ -5,6 +5,8 @@ export type CreateTransactionInput = {
   description: string;
   amount: number;
   type: TransactionType;
+  date: Date;
+  categoryId?: string | null;
 };
 
 export interface ITransactionRepository {

@@ -1,7 +1,7 @@
 import { graphqlClient } from '@/services/graphqlClient';
-import { LOGIN_MUTATION } from '@/graphql/auth/mutations';
-import type { LoginInput, LoginResponse } from '@/features/auth/types';
-import type { LoginMutation, LoginMutationVariables } from '@/generated/graphql';
+import { LOGIN_MUTATION, REGISTER_MUTATION } from '@/graphql/auth/mutations';
+import type { LoginInput, LoginResponse, RegisterInput } from '@/features/auth/types';
+import type { LoginMutation, LoginMutationVariables, RegisterMutation, RegisterMutationVariables } from '@/generated/graphql';
 
 export const authService = {
   async login(input: LoginInput): Promise<LoginResponse> {
@@ -12,5 +12,15 @@ export const authService = {
     }
 
     return data.login;
+  },
+
+  async register(input: RegisterInput): Promise<RegisterMutation['register']> {
+    const data = await graphqlClient.request<RegisterMutation, RegisterMutationVariables>(REGISTER_MUTATION, input);
+
+    if (!data.register) {
+      throw new Error('Erro ao registrar usuário');
+    }
+
+    return data.register;
   },
 };

@@ -7,6 +7,8 @@ export class Transaction {
     public readonly description: string,
     public readonly amount: number,
     public readonly type: TransactionType,
+    public readonly date: Date,
     public readonly createdAt: Date,
+    public readonly categoryId?: string | null,
   ) {}
 }

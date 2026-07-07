@@ -6,6 +6,8 @@ type CreateTransactionArgs = {
   description: string;
   amount: number;
   type: 'INCOME' | 'EXPENSE';
+  date: string;
+  categoryId?: string | null;
 };
 
 type DeleteTransactionArgs = {
@@ -30,9 +32,28 @@ export const transactionResolvers = {
           description: transaction.description,
           amount: transaction.amount,
           type: transaction.type,
-          date: transaction.createdAt.toISOString(),
+          date: transaction.date.toISOString(),
+          categoryId: transaction.categoryId,
         })),
       };
+    },
+    transactions: async (_: unknown, __: unknown, context: GraphQLContext) => {
+      if (!context.userId) {
+        throw new GraphQLError('Não autenticado', { extensions: { code: 'UNAUTHORIZED' } });
+      }
+
+      const txs = await context.container.getTransactionsUseCase.execute({
+        userId: context.userId,
+      });
+
+      return txs.map(transaction => ({
+        id: transaction.id,
+        description: transaction.description,
+        amount: transaction.amount,
+        type: transaction.type,
+        date: transaction.date.toISOString(),
+        categoryId: transaction.categoryId,
+      }));
     },
   },
   Mutation: {
@@ -47,6 +68,8 @@ export const transactionResolvers = {
           description: args.description,
           amount: args.amount,
           type: args.type,
+          date: args.date,
+          categoryId: args.categoryId,
         });
 
         return {
@@ -54,7 +77,8 @@ export const transactionResolvers = {
           description: transaction.description,
           amount: transaction.amount,
           type: transaction.type,
-          date: transaction.createdAt.toISOString(),
+          date: transaction.date.toISOString(),
+          categoryId: transaction.categoryId,
         };
       } catch (error) {
         if (error instanceof AppError) {

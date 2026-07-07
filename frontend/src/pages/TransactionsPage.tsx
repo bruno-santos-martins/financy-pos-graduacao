@@ -3,13 +3,6 @@ import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
 import { 
   Search, 
-  Utensils, 
-  Car, 
-  ShoppingCart, 
-  TrendingUp, 
-  Home, 
-  Briefcase, 
-  Film,
   ArrowDownCircle,
   ArrowUpCircle,
   Trash2,
@@ -19,101 +12,31 @@ import {
   Plus
 } from 'lucide-react';
 import { useState } from 'react';
-import { CreateTransactionModal } from '@/features/transactions';
+import { CreateTransactionModal, useTransactions } from '@/features/transactions';
+import { useCategories } from '@/features/category';
+import * as Icons from 'lucide-react';
 
-const mockTransactions = [
-  {
-    id: '1',
-    description: 'Jantar no Restaurante',
-    date: '30/11/25',
-    category: 'Alimentação',
-    categoryColor: 'bg-blue',
-    icon: <Utensils size={20} color="var(--blue-dark)" />,
-    type: 'Saída',
-    value: '- R$ 89,50'
-  },
-  {
-    id: '2',
-    description: 'Posto de Gasolina',
-    date: '29/11/25',
-    category: 'Transporte',
-    categoryColor: 'bg-purple',
-    icon: <Car size={20} color="var(--purple-dark)" />,
-    type: 'Saída',
-    value: '- R$ 100,00'
-  },
-  {
-    id: '3',
-    description: 'Compras no Mercado',
-    date: '28/11/25',
-    category: 'Mercado',
-    categoryColor: 'bg-orange',
-    icon: <ShoppingCart size={20} color="var(--orange-dark)" />,
-    type: 'Saída',
-    value: '- R$ 156,80'
-  },
-  {
-    id: '4',
-    description: 'Retorno de Investimento',
-    date: '26/11/25',
-    category: 'Investimento',
-    categoryColor: 'bg-green',
-    icon: <TrendingUp size={20} color="var(--green-dark)" />,
-    type: 'Entrada',
-    value: '+ R$ 340,25'
-  },
-  {
-    id: '5',
-    description: 'Aluguel',
-    date: '26/11/25',
-    category: 'Utilidades',
-    categoryColor: 'bg-yellow',
-    icon: <Home size={20} color="var(--yellow-dark)" />,
-    type: 'Saída',
-    value: '- R$ 1.700,00'
-  },
-  {
-    id: '6',
-    description: 'Freelance',
-    date: '24/11/25',
-    category: 'Salário',
-    categoryColor: 'bg-green',
-    icon: <Briefcase size={20} color="var(--green-dark)" />,
-    type: 'Entrada',
-    value: '+ R$ 2.500,00'
-  },
-  {
-    id: '7',
-    description: 'Compras Jantar',
-    date: '22/11/25',
-    category: 'Mercado',
-    categoryColor: 'bg-orange',
-    icon: <ShoppingCart size={20} color="var(--orange-dark)" />,
-    type: 'Saída',
-    value: '- R$ 150,00'
-  },
-  {
-    id: '8',
-    description: 'Cinema',
-    date: '18/12/25',
-    category: 'Entretenimento',
-    categoryColor: 'bg-pink',
-    icon: <Film size={20} color="var(--pink-dark)" />,
-    type: 'Saída',
-    value: '- R$ 88,00'
-  }
-];
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('pt-BR').format(date);
+};
 
 export function TransactionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const { data: transactions = [], isLoading } = useTransactions();
+  const { data: categories = [] } = useCategories();
 
   const itemsPerPage = 6;
-  const totalItems = mockTransactions.length;
+  const totalItems = transactions.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = mockTransactions.slice(startIndex, startIndex + itemsPerPage);
+  const currentItems = transactions.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePrevPage = () => {
     if (currentPage > 1) setCurrentPage(p => p - 1);
@@ -195,35 +118,51 @@ export function TransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {currentItems.map((tx) => (
+            {isLoading ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Carregando...</td></tr>
+            ) : currentItems.map((tx) => {
+              const category = categories.find(c => c.id === tx.categoryId);
+              // Provide a default icon/color if no category is found
+              const IconName = category?.icon || 'Tag';
+              const IconComp = (Icons as any)[IconName] || Icons.Tag;
+              const color = category?.colorClass || '#71717A'; // default gray
+
+              return (
               <tr key={tx.id}>
                 <td>
                   <div className="table-desc">
-                    <div className={`table-icon-wrapper ${tx.categoryColor}`}>
-                      {tx.icon}
+                    <div className="table-icon-wrapper" style={{ backgroundColor: color }}>
+                      <IconComp size={20} color="white" />
                     </div>
                     {tx.description}
                   </div>
                 </td>
-                <td>{tx.date}</td>
+                <td>{formatDate(tx.date)}</td>
                 <td>
-                  <span className={`badge ${tx.categoryColor}`}>
-                    {tx.category}
-                  </span>
+                  {category ? (
+                    <span className="badge" style={{ backgroundColor: `${color}20`, color: color }}>
+                      {category.name}
+                    </span>
+                  ) : (
+                    <span className="badge" style={{ backgroundColor: '#f4f4f5', color: '#71717A' }}>
+                      Sem Categoria
+                    </span>
+                  )}
                 </td>
                 <td>
-                  <div className={`table-type ${tx.type === 'Saída' ? 'saida' : 'entrada'}`}>
-                    {tx.type === 'Saída' ? (
+                  <div className={`table-type ${tx.type === 'EXPENSE' ? 'saida' : 'entrada'}`}>
+                    {tx.type === 'EXPENSE' ? (
                       <ArrowDownCircle size={16} />
                     ) : (
                       <ArrowUpCircle size={16} />
                     )}
-                    {tx.type}
+                    {tx.type === 'EXPENSE' ? 'Saída' : 'Entrada'}
                   </div>
                 </td>
                 <td>
-                  <span className={`table-value ${tx.type === 'Saída' ? 'amount-expense' : 'amount-income'}`}>
-                    {tx.value}
+                  <span className={`table-value ${tx.type === 'EXPENSE' ? 'amount-expense' : 'amount-income'}`}>
+                    {tx.type === 'EXPENSE' ? '- ' : '+ '}
+                    {formatCurrency(tx.amount)}
                   </span>
                 </td>
                 <td>
@@ -237,7 +176,7 @@ export function TransactionsPage() {
                   </div>
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
 

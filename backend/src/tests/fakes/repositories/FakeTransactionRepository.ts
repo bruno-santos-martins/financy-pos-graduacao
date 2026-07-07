@@ -14,7 +14,9 @@ export class FakeTransactionRepository implements ITransactionRepository {
       input.description,
       input.amount,
       input.type,
+      input.date,
       new Date(),
+      input.categoryId,
     );
     this.transactions.unshift(transaction);
     return transaction;

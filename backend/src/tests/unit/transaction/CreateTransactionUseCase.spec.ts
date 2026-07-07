@@ -12,6 +12,7 @@ describe('CreateTransactionUseCase', () => {
       description: 'Salário',
       amount: 1000,
       type: 'INCOME',
+      date: new Date('2025-01-01'),
     });
 
     expect(result.description).toBe('Salário');
