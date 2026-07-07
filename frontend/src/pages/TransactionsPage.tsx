@@ -106,6 +106,22 @@ const mockTransactions = [
 
 export function TransactionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 6;
+  const totalItems = mockTransactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = mockTransactions.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(p => p - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(p => p + 1);
+  };
 
   return (
     <Layout>
@@ -179,7 +195,7 @@ export function TransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {mockTransactions.map((tx) => (
+            {currentItems.map((tx) => (
               <tr key={tx.id}>
                 <td>
                   <div className="table-desc">
@@ -227,16 +243,27 @@ export function TransactionsPage() {
 
         <div className="table-footer">
           <div className="table-footer-info">
-            1 a 10 | 27 resultados
+            {totalItems > 0 ? startIndex + 1 : 0} a {Math.min(startIndex + itemsPerPage, totalItems)} | {totalItems} resultados
           </div>
           <div className="pagination">
-            <button className="page-btn" disabled>
+            <button className="page-btn" disabled={currentPage === 1} onClick={handlePrevPage}>
               <ChevronLeft size={16} />
             </button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">3</button>
-            <button className="page-btn"><ChevronRight size={16} /></button>
+            {Array.from({ length: totalPages }).map((_, idx) => {
+              const page = idx + 1;
+              return (
+                <button 
+                  key={page} 
+                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            <button className="page-btn" disabled={currentPage === totalPages || totalPages === 0} onClick={handleNextPage}>
+              <ChevronRight size={16} />
+            </button>
           </div>
         </div>
       </div>

@@ -1,17 +1,21 @@
 import { InputHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@/shared/lib/utils';
 
-export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   icon?: ReactNode;
-  helperText?: string;
-  error?: string | boolean;
+  isError?: boolean;
+  helper?: string;
 };
 
-export function Input({ className, label, icon, helperText, error, ...props }: InputProps) {
-  const isError = Boolean(error);
-  const helper = typeof error === 'string' ? error : helperText;
-
+export function Input({
+  className,
+  label,
+  icon,
+  isError,
+  helper,
+  ...props
+}: InputProps) {
   return (
     <div className="input-wrapper">
       {label && <label className="input-label">{label}</label>}
@@ -20,17 +24,15 @@ export function Input({ className, label, icon, helperText, error, ...props }: I
         <input
           className={cn(
             'input',
-            {
-              'input-with-icon': !!icon,
-              'input-error': isError,
-            },
+            icon ? 'input-with-icon' : undefined,
+            isError ? 'input-error' : undefined,
             className
           )}
           {...props}
         />
       </div>
       {helper && (
-        <span className={cn('input-helper', { 'input-helper-error': isError })}>
+        <span className={cn('input-helper', isError ? 'input-helper-error' : undefined)}>
           {helper}
         </span>
       )}

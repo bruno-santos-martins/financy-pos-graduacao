@@ -19,9 +19,9 @@ export function DashboardPage() {
 
   // Use the real data if it exists, otherwise use empty values but still render the dashboard
   const displayData = data || {
-    balance: 'R$ 0,00',
-    income: 'R$ 0,00',
-    expenses: 'R$ 0,00',
+    balance: 0,
+    income: 0,
+    expenses: 0,
     recentTransactions: []
   };
 
