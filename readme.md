@@ -185,7 +185,9 @@ O **Financy** vai além de um simples registro de despesas. Ele é a evidência 
 
 ## ✉️ Contato / Autor
 
-**[Bruno dos Santos Martins]**  
+**Bruno dos Santos Martins**  
 Desenvolvedor Fullstack
+**Linkedin** 
+!(https://www.linkedin.com/in/brmartins92)
 
-![LinkedIn](https://www.linkedin.com/in/brmartins92)
+
