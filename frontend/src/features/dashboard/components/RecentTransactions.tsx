@@ -4,6 +4,7 @@ import type { Transaction } from '@/shared/types';
 
 type RecentTransactionsProps = {
   transactions: Transaction[];
+  onNewTransaction?: () => void;
 };
 
 // Helper function to mock category badge based on description or type
@@ -20,7 +21,7 @@ function getCategoryMock(transaction: Transaction) {
   return { name: 'Outros', icon: <ShoppingCart size={20} color="var(--gray-600)" />, colorClass: 'bg-gray' };
 }
 
-export function RecentTransactions({ transactions }: RecentTransactionsProps) {
+export function RecentTransactions({ transactions, onNewTransaction }: RecentTransactionsProps) {
   // Format date correctly
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -67,7 +68,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
       </div>
 
       <div className="action-row">
-        <button className="btn-new-transaction">
+        <button className="btn-new-transaction" onClick={onNewTransaction}>
           <Plus size={16} /> Nova transação
         </button>
       </div>
