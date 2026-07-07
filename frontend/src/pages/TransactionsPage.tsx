@@ -28,22 +28,51 @@ const formatDate = (dateString: string) => {
 export function TransactionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filter States
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  
   const { data: transactions = [], isLoading } = useTransactions();
   const { data: categories = [] } = useCategories();
 
-  const itemsPerPage = 6;
-  const totalItems = transactions.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // Apply Filters
+  const filteredTransactions = transactions.filter((tx) => {
+    // Search
+    if (search && !tx.description.toLowerCase().includes(search.toLowerCase())) return false;
+    
+    // Type
+    if (typeFilter !== 'all' && tx.type !== typeFilter) return false;
+    
+    // Category
+    if (categoryFilter !== 'all') {
+      if (categoryFilter === 'none') {
+        if (tx.categoryId) return false;
+      } else {
+        if (tx.categoryId !== categoryFilter) return false;
+      }
+    }
+    
+    return true;
+  });
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = transactions.slice(startIndex, startIndex + itemsPerPage);
+  const itemsPerPage = 6;
+  const totalItems = filteredTransactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+  // Make sure current page is valid when filtering reduces items
+  const validCurrentPage = Math.min(currentPage, totalPages);
+  
+  const startIndex = (validCurrentPage - 1) * itemsPerPage;
+  const currentItems = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(p => p - 1);
+    if (validCurrentPage > 1) setCurrentPage(p => p - 1);
   };
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(p => p + 1);
+    if (validCurrentPage < totalPages) setCurrentPage(p => p + 1);
   };
 
   return (
@@ -71,35 +100,45 @@ export function TransactionsPage() {
                 type="text" 
                 className="input" 
                 placeholder="Buscar por descrição" 
-                style={{ paddingLeft: '2.5rem' }} 
+                style={{ paddingLeft: '2.5rem' }}
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               />
             </div>
           </div>
 
           <div className="input-wrapper">
             <Label className="input-label">Tipo</Label>
-            <select className="filter-select">
+            <select 
+              className="filter-select" 
+              value={typeFilter} 
+              onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
+            >
               <option value="all">Todos</option>
-              <option value="income">Entrada</option>
-              <option value="expense">Saída</option>
+              <option value="INCOME">Entrada</option>
+              <option value="EXPENSE">Saída</option>
             </select>
           </div>
 
           <div className="input-wrapper">
             <Label className="input-label">Categoria</Label>
-            <select className="filter-select">
+            <select 
+              className="filter-select" 
+              value={categoryFilter} 
+              onChange={(e) => { setCategoryFilter(e.target.value); setCurrentPage(1); }}
+            >
               <option value="all">Todas</option>
-              <option value="alimentacao">Alimentação</option>
-              <option value="transporte">Transporte</option>
-              <option value="mercado">Mercado</option>
+              <option value="none">Sem Categoria</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
             </select>
           </div>
 
           <div className="input-wrapper">
             <Label className="input-label">Período</Label>
-            <select className="filter-select">
-              <option value="nov2025">Novembro / 2025</option>
-              <option value="dez2025">Dezembro / 2025</option>
+            <select className="filter-select" disabled>
+              <option value="all">Todos os períodos</option>
             </select>
           </div>
         </div>
@@ -185,7 +224,7 @@ export function TransactionsPage() {
             {totalItems > 0 ? startIndex + 1 : 0} a {Math.min(startIndex + itemsPerPage, totalItems)} | {totalItems} resultados
           </div>
           <div className="pagination">
-            <button className="page-btn" disabled={currentPage === 1} onClick={handlePrevPage}>
+            <button className="page-btn" disabled={validCurrentPage === 1} onClick={handlePrevPage}>
               <ChevronLeft size={16} />
             </button>
             {Array.from({ length: totalPages }).map((_, idx) => {
@@ -193,14 +232,14 @@ export function TransactionsPage() {
               return (
                 <button 
                   key={page} 
-                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  className={`page-btn ${validCurrentPage === page ? 'active' : ''}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
                 </button>
               );
             })}
-            <button className="page-btn" disabled={currentPage === totalPages || totalPages === 0} onClick={handleNextPage}>
+            <button className="page-btn" disabled={validCurrentPage === totalPages || totalPages === 0} onClick={handleNextPage}>
               <ChevronRight size={16} />
             </button>
           </div>

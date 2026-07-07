@@ -5,6 +5,8 @@ import { useCreateTransaction } from '../hooks/useCreateTransaction';
 import { useCategories } from '@/features/category/hooks/useCategories';
 import type { TransactionType } from '../types';
 
+import { AlertModal } from '@/shared/components/ui/AlertModal';
+
 type CreateTransactionModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -16,6 +18,14 @@ export function CreateTransactionModal({ isOpen, onClose }: CreateTransactionMod
   const [date, setDate] = useState('');
   const [amountStr, setAmountStr] = useState('');
   const [categoryId, setCategoryId] = useState('');
+
+  // Alert State
+  const [alert, setAlert] = useState<{ isOpen: boolean; title: string; message: string; type: 'success' | 'error' }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'error',
+  });
 
   const { mutateAsync: createTransaction, isPending } = useCreateTransaction();
   const { data: categories } = useCategories();
@@ -48,113 +58,141 @@ export function CreateTransactionModal({ isOpen, onClose }: CreateTransactionMod
       onClose();
     } catch (error: any) {
       console.error('Error creating transaction:', error);
-      const msg = error.response?.errors?.[0]?.message || error.message || 'Erro desconhecido';
-      alert(`Erro ao criar transação: ${msg}`);
+      let msg = error.response?.errors?.[0]?.message || error.message || 'Erro desconhecido';
+      
+      // Parse JSON Zod error if possible
+      try {
+        if (msg.startsWith('[')) {
+          const parsed = JSON.parse(msg);
+          if (Array.isArray(parsed) && parsed[0]?.message) {
+            msg = parsed.map(e => e.message).join(', ');
+          }
+        }
+      } catch (e) {
+        // ignore JSON parse error
+      }
+
+      setAlert({
+        isOpen: true,
+        title: 'Erro na validação',
+        message: msg,
+        type: 'error'
+      });
     }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <div className="modal-title">
-            <h2>Nova transação</h2>
-            <p>Registre sua despesa ou receita</p>
-          </div>
-          <button className="modal-close" onClick={onClose} type="button">
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="type-selector">
-            <button 
-              type="button"
-              className={`type-btn expense ${type === 'EXPENSE' ? 'selected' : ''}`}
-              onClick={() => setType('EXPENSE')}
-            >
-              <ArrowDownCircle size={16} color={type === 'EXPENSE' ? 'var(--danger)' : 'var(--danger)'} />
-              Despesa
-            </button>
-            <button 
-              type="button"
-              className={`type-btn income ${type === 'INCOME' ? 'selected' : ''}`}
-              onClick={() => setType('INCOME')}
-            >
-              <ArrowUpCircle size={16} color={type === 'INCOME' ? 'var(--success)' : 'var(--gray-400)'} />
-              Receita
+    <>
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <div className="modal-header">
+            <div className="modal-title">
+              <h2>Nova transação</h2>
+              <p>Registre sua despesa ou receita</p>
+            </div>
+            <button className="modal-close" onClick={onClose} type="button">
+              <X size={16} />
             </button>
           </div>
 
-          <div className="form-group">
-            <label>Descrição</label>
-            <input 
-              type="text" 
-              className="input" 
-              placeholder="Ex. Almoço no restaurante" 
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="type-selector">
+              <button 
+                type="button"
+                className={`type-btn expense ${type === 'EXPENSE' ? 'selected' : ''}`}
+                onClick={() => setType('EXPENSE')}
+              >
+                <ArrowDownCircle size={16} color={type === 'EXPENSE' ? 'var(--danger)' : 'var(--danger)'} />
+                Despesa
+              </button>
+              <button 
+                type="button"
+                className={`type-btn income ${type === 'INCOME' ? 'selected' : ''}`}
+                onClick={() => setType('INCOME')}
+              >
+                <ArrowUpCircle size={16} color={type === 'INCOME' ? 'var(--success)' : 'var(--gray-400)'} />
+                Receita
+              </button>
+            </div>
 
-          <div className="form-row">
             <div className="form-group">
-              <label>Data</label>
+              <label>Descrição</label>
               <input 
-                type="date" 
+                type="text" 
                 className="input" 
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                placeholder="Ex. Almoço no restaurante" 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 required
               />
             </div>
 
-            <div className="form-group">
-              <label>Valor</label>
-              <div className="value-input-wrapper">
-                <span className="value-prefix">R$</span>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Data</label>
                 <input 
-                  type="number" 
-                  step="0.01"
-                  className="input value-input" 
-                  placeholder="0,00" 
-                  value={amountStr}
-                  onChange={(e) => setAmountStr(e.target.value)}
+                  type="date" 
+                  className="input" 
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                   required
                 />
               </div>
-            </div>
-          </div>
 
-          <div className="form-group">
-            <label>Categoria</label>
-            <div className="select-wrapper">
-              <select 
-                className="select-input" 
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                <option value="" disabled>Selecione</option>
-                {categories?.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={16} className="select-icon" />
+              <div className="form-group">
+                <label>Valor</label>
+                <div className="value-input-wrapper">
+                  <span className="value-prefix">R$</span>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    className="input value-input" 
+                    placeholder="0,00" 
+                    value={amountStr}
+                    onChange={(e) => setAmountStr(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          <Button 
-            type="submit"
-            disabled={isPending}
-            style={{ backgroundColor: 'var(--brand-base)', color: 'white', border: 'none', width: '100%', marginTop: '1rem' }}
-          >
-            {isPending ? 'Salvando...' : 'Salvar'}
-          </Button>
-        </form>
+            <div className="form-group">
+              <label>Categoria</label>
+              <div className="select-wrapper">
+                <select 
+                  className="select-input" 
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                >
+                  <option value="" disabled>Selecione</option>
+                  {categories?.map((category: any) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={16} className="select-icon" />
+              </div>
+            </div>
+
+            <Button 
+              type="submit"
+              disabled={isPending}
+              style={{ backgroundColor: 'var(--brand-base)', color: 'white', border: 'none', width: '100%', marginTop: '1rem' }}
+            >
+              {isPending ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </form>
+        </div>
       </div>
-    </div>
+
+      <AlertModal 
+        isOpen={alert.isOpen}
+        onClose={() => setAlert({ ...alert, isOpen: false })}
+        title={alert.title}
+        message={alert.message}
+        type={alert.type}
+      />
+    </>
   );
 }

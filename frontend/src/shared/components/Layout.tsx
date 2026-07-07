@@ -10,6 +10,18 @@ type LayoutProps = {
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { user } = useAuth();
+
+  const getInitials = (name?: string) => {
+    if (!name) return 'US';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const initials = getInitials(user?.name);
 
   return (
     <>
@@ -31,7 +43,7 @@ export function Layout({ children }: LayoutProps) {
         </nav>
 
         <Link to="/profile" className="avatar-circle" title="Perfil">
-          CT
+          {initials}
         </Link>
       </header>
       <div className="dashboard-container">
